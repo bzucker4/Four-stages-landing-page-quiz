@@ -1,4 +1,7 @@
 /* Four Stages of Consciousness — dark celestial theme */
+/* Cached for a year via /_headers. When you edit this file, bump the
+   ?v= query string on every <link rel="stylesheet"> tag that points here
+   (index.html and quiz/*.html), or visitors' cached copies won't update. */
 
 :root {
   --bg-0: #05060f;
