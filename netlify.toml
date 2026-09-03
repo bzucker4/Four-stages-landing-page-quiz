@@ -1,0 +1,17 @@
+# Netlify configuration.
+#
+# This repo also deploys on Cloudflare Pages (see /_headers) — that setup is
+# untouched. This file only matters if/when this repo is connected as a site
+# in Netlify, which is required for the Netlify Functions + Blobs used by
+# /leads/ and for the Netlify Image CDN used by /gallery/. Netlify Functions
+# and Blobs do not run on Cloudflare Pages.
+
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[images]
+  remote_images = ["https://picsum\\.photos/.*"]
