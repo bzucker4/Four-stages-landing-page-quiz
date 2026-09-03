@@ -1,0 +1,566 @@
+/* Four Stages of Consciousness — dark celestial theme */
+/* Cached for a year via /_headers. When you edit this file, bump the
+   ?v= query string on every <link rel="stylesheet"> tag that points here
+   (index.html and quiz/*.html), or visitors' cached copies won't update. */
+
+:root {
+  --bg-0: #05060f;
+  --bg-1: #0b0d1e;
+  --ink-0: #f2f0e9;
+  --ink-1: #c9c6d8;
+  --ink-2: #8f8ba8;
+  --accent: #c9a15a;
+  --accent-soft: rgba(201, 161, 90, 0.18);
+  --line: rgba(255, 255, 255, 0.09);
+  --font-serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg-0);
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 60% 70%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 30% 85%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 45% 40%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 15% 55%, rgba(255,255,255,0.5), transparent),
+    linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 55%, #10091c 100%);
+  background-repeat: repeat;
+  background-size: 400px 400px, 500px 500px, 350px 350px, 450px 450px, 380px 380px, 300px 300px, 420px 420px, 100% 100%;
+  color: var(--ink-1);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Header */
+
+.site-header {
+  padding: 32px 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.site-header a {
+  color: var(--ink-0);
+  text-decoration: none;
+}
+
+.brand {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.site-nav {
+  display: flex;
+  gap: 20px;
+}
+
+.site-nav a {
+  color: var(--ink-2);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid transparent;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current="page"] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Hero */
+
+.hero {
+  padding: 64px 0 32px;
+  text-align: center;
+}
+
+h1 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: var(--ink-0);
+  line-height: 1.2;
+  margin: 0 0 24px;
+}
+
+h2 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  color: var(--ink-0);
+  margin: 0 0 16px;
+}
+
+p {
+  margin: 0 0 20px;
+  font-size: 1.05rem;
+  color: var(--ink-1);
+}
+
+.lede {
+  font-size: 1.15rem;
+  color: var(--ink-0);
+}
+
+/* Stage framework block */
+
+.stages {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin: 40px 0;
+}
+
+.stage-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  text-align: center;
+}
+
+.stage-card .num {
+  display: block;
+  font-family: var(--font-serif);
+  color: var(--accent);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.stage-card .name {
+  font-family: var(--font-serif);
+  color: var(--ink-0);
+  font-size: 1.15rem;
+  margin-bottom: 4px;
+}
+
+.stage-card .sub {
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+/* Quiz embed section */
+
+.quiz-section {
+  margin: 48px 0;
+  padding: 32px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  text-align: center;
+}
+
+#tally-embed {
+  min-height: 500px;
+  width: 100%;
+}
+
+/* Pattern / signs section on result pages */
+
+.pattern-section {
+  margin: 40px 0;
+  padding: 28px 24px;
+  border-left: 2px solid var(--accent);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 0 10px 10px 0;
+}
+
+.pattern-section ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.pattern-section li {
+  margin-bottom: 10px;
+  color: var(--ink-1);
+}
+
+/* CTA button */
+
+.cta-button {
+  display: inline-block;
+  margin: 12px 0 8px;
+  padding: 16px 32px;
+  background: var(--accent);
+  color: var(--bg-0);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  border-radius: 8px;
+  letter-spacing: 0.01em;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cta-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px var(--accent-soft);
+}
+
+.cta-wrap {
+  text-align: center;
+  margin: 40px 0;
+  padding: 32px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Back link */
+
+.back-link {
+  display: inline-block;
+  margin: 24px 0 8px;
+  color: var(--ink-2);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.back-link:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Footer */
+
+.site-footer {
+  margin-top: 64px;
+  padding: 32px 0 48px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  color: var(--ink-2);
+  font-size: 0.85rem;
+}
+
+.site-footer a {
+  color: var(--ink-2);
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 40px 0 24px;
+  }
+
+  .quiz-section, .cta-wrap, .pattern-section {
+    padding: 24px 16px;
+  }
+}
+
+/* Focus visibility (leads + gallery interactive elements) */
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Screen-reader-only utility (visually hidden, still announced) */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Page intro (leads + gallery) */
+
+.page-intro {
+  padding: 48px 0 24px;
+}
+
+.page-intro h1 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  margin-bottom: 12px;
+}
+
+/* Status / empty / error states */
+
+.status-message {
+  padding: 16px 20px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--ink-1);
+  margin: 16px 0;
+}
+
+.status-message.is-error {
+  border-color: rgba(220, 100, 90, 0.5);
+  color: #f0b3ab;
+}
+
+/* Buttons */
+
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink-0);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--bg-0);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  color: var(--bg-0);
+  opacity: 0.9;
+}
+
+.btn-danger {
+  border-color: rgba(220, 100, 90, 0.5);
+  color: #f0b3ab;
+}
+
+.btn-danger:hover {
+  border-color: #dc645a;
+  color: #dc645a;
+}
+
+/* Forms (lead create/edit) */
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ink-0);
+  font-size: 0.9rem;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg-1);
+  color: var(--ink-0);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+}
+
+.field textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.field-hint {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* Leads table */
+
+.leads-table-wrap {
+  overflow-x: auto;
+  margin: 24px 0;
+}
+
+.leads-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.leads-table th,
+.leads-table td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.9rem;
+}
+
+.leads-table th {
+  color: var(--ink-2);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.leads-table td.actions {
+  white-space: nowrap;
+  display: flex;
+  gap: 8px;
+}
+
+.stage-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 0.78rem;
+  color: var(--ink-1);
+  text-transform: capitalize;
+}
+
+/* Native <dialog> modal (lead edit + delete confirm) */
+
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-1);
+  color: var(--ink-1);
+  padding: 28px;
+  max-width: 420px;
+  width: calc(100% - 32px);
+}
+
+dialog::backdrop {
+  background: rgba(5, 6, 15, 0.75);
+}
+
+dialog h2 {
+  margin-top: 0;
+}
+
+/* Gallery grid */
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin: 32px 0;
+}
+
+.gallery-item {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.gallery-item button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.gallery-item img {
+  display: block;
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+
+.gallery-caption {
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.gallery-caption .name {
+  color: var(--ink-0);
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  margin-bottom: 2px;
+}
+
+.gallery-caption .desc {
+  color: var(--ink-2);
+  font-size: 0.85rem;
+}
+
+/* Lightbox */
+
+#lightbox {
+  padding: 0;
+  max-width: min(90vw, 900px);
+  width: auto;
+  background: var(--bg-0);
+}
+
+#lightbox .lightbox-body {
+  position: relative;
+}
+
+#lightbox img {
+  display: block;
+  max-width: 100%;
+  max-height: 80vh;
+}
+
+#lightbox .lightbox-caption {
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+}
+
+#lightbox .lightbox-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+}
+
+@media (max-width: 480px) {
+  .leads-table {
+    min-width: 560px;
+  }
+}

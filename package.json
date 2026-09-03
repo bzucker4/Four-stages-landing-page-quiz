@@ -1,0 +1,19 @@
+{
+  "name": "four-stages-landing-page-quiz",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Four Stages of Consciousness quiz landing site",
+  "type": "module",
+  "scripts": {
+    "test": "tsx scripts/leads.test.mts"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^11.0.3"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^6.0.0",
+    "@types/node": "^26.4.1",
+    "tsx": "^4.23.13",
+    "typescript": "^5.6.0"
+  }
+}
