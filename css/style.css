@@ -1,0 +1,246 @@
+/* Four Stages of Consciousness — dark celestial theme */
+
+:root {
+  --bg-0: #05060f;
+  --bg-1: #0b0d1e;
+  --ink-0: #f2f0e9;
+  --ink-1: #c9c6d8;
+  --ink-2: #8f8ba8;
+  --accent: #c9a15a;
+  --accent-soft: rgba(201, 161, 90, 0.18);
+  --line: rgba(255, 255, 255, 0.09);
+  --font-serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--bg-0);
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.9), transparent),
+    radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1.5px 1.5px at 60% 70%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 30% 85%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 45% 40%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 15% 55%, rgba(255,255,255,0.5), transparent),
+    linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 55%, #10091c 100%);
+  background-repeat: repeat;
+  background-size: 400px 400px, 500px 500px, 350px 350px, 450px 450px, 380px 380px, 300px 300px, 420px 420px, 100% 100%;
+  color: var(--ink-1);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Header */
+
+.site-header {
+  padding: 32px 0 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.site-header a {
+  color: var(--ink-0);
+  text-decoration: none;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Hero */
+
+.hero {
+  padding: 64px 0 32px;
+  text-align: center;
+}
+
+h1 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: var(--ink-0);
+  line-height: 1.2;
+  margin: 0 0 24px;
+}
+
+h2 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  color: var(--ink-0);
+  margin: 0 0 16px;
+}
+
+p {
+  margin: 0 0 20px;
+  font-size: 1.05rem;
+  color: var(--ink-1);
+}
+
+.lede {
+  font-size: 1.15rem;
+  color: var(--ink-0);
+}
+
+/* Stage framework block */
+
+.stages {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin: 40px 0;
+}
+
+.stage-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 20px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  text-align: center;
+}
+
+.stage-card .num {
+  display: block;
+  font-family: var(--font-serif);
+  color: var(--accent);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.stage-card .name {
+  font-family: var(--font-serif);
+  color: var(--ink-0);
+  font-size: 1.15rem;
+  margin-bottom: 4px;
+}
+
+.stage-card .sub {
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+
+/* Quiz embed section */
+
+.quiz-section {
+  margin: 48px 0;
+  padding: 32px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  text-align: center;
+}
+
+#tally-embed {
+  min-height: 500px;
+  width: 100%;
+}
+
+/* Pattern / signs section on result pages */
+
+.pattern-section {
+  margin: 40px 0;
+  padding: 28px 24px;
+  border-left: 2px solid var(--accent);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 0 10px 10px 0;
+}
+
+.pattern-section ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.pattern-section li {
+  margin-bottom: 10px;
+  color: var(--ink-1);
+}
+
+/* CTA button */
+
+.cta-button {
+  display: inline-block;
+  margin: 12px 0 8px;
+  padding: 16px 32px;
+  background: var(--accent);
+  color: var(--bg-0);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  border-radius: 8px;
+  letter-spacing: 0.01em;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cta-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px var(--accent-soft);
+}
+
+.cta-wrap {
+  text-align: center;
+  margin: 40px 0;
+  padding: 32px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Back link */
+
+.back-link {
+  display: inline-block;
+  margin: 24px 0 8px;
+  color: var(--ink-2);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.back-link:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Footer */
+
+.site-footer {
+  margin-top: 64px;
+  padding: 32px 0 48px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  color: var(--ink-2);
+  font-size: 0.85rem;
+}
+
+.site-footer a {
+  color: var(--ink-2);
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 40px 0 24px;
+  }
+
+  .quiz-section, .cta-wrap, .pattern-section {
+    padding: 24px 16px;
+  }
+}
