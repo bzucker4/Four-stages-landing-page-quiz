@@ -1,0 +1,13 @@
+{
+  // This repo has no Worker script — it's a static site deployed as
+  // Cloudflare Workers static assets (the modern replacement for Pages).
+  // Added because the "Workers Builds" CI started failing the same push
+  // that added package.json: without this file, Workers Builds had no
+  // deploy target once a package.json made it treat the repo as a
+  // Wrangler project instead of doing a zero-config static deploy.
+  "name": "four-stages-landing-page-quiz",
+  "compatibility_date": "2024-09-02",
+  "assets": {
+    "directory": "./"
+  }
+}
