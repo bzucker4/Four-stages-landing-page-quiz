@@ -5,6 +5,7 @@
   "description": "Four Stages of Consciousness quiz landing site",
   "type": "module",
   "scripts": {
+    "build": "echo 'No build step: static site, deployed as Cloudflare Workers static assets (see wrangler.jsonc).'",
     "test": "tsx scripts/leads.test.mts"
   },
   "dependencies": {

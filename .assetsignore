@@ -1,0 +1,14 @@
+# Excludes dev/build tooling from being deployed as public static assets by
+# Cloudflare Workers (assets directory = repo root, see wrangler.jsonc).
+# Gitignore syntax.
+node_modules/
+netlify/
+scripts/
+package.json
+package-lock.json
+tsconfig.json
+netlify.toml
+wrangler.jsonc
+.gitignore
+.assetsignore
+.git/
