@@ -1,5 +1,5 @@
-# Local Netlify folder
-.netlify
+# Local Wrangler folder (dev/build cache, local D1 SQLite emulation)
+.wrangler
 
 # Dependencies
 node_modules

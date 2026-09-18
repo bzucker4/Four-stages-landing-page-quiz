@@ -1,27 +1,33 @@
-// Gallery data. Swap `src` for a real product photo URL (or a local
-// /images/ path once real product images exist) to replace a placeholder —
-// everything else (grid, srcset, lightbox) works the same either way.
+// Gallery data. Swap `seed` for a real product photo URL under /images/
+// (or any other image URL) to replace a placeholder — everything else
+// (grid, srcset, lightbox) works the same either way. Picsum generates
+// images by seed directly at whatever size is requested, so no separate
+// image CDN/proxy is needed for these placeholders. Once real product
+// photos replace them, point `seed` at the real image path instead and
+// swap buildSrcset/picsumUrl below for Cloudflare's image resizing
+// (/cdn-cgi/image/...), which needs the zone's Image Resizing feature
+// enabled first.
 const GALLERY_ITEMS = [
   {
-    src: 'https://picsum.photos/seed/shadow-ledger/1600/1600',
+    seed: 'shadow-ledger',
     alt: 'Placeholder preview image for the Shadow Ledger',
     caption: 'Shadow Ledger',
     desc: 'A written practice for the Victim stage: trace the pattern back to its root.',
   },
   {
-    src: 'https://picsum.photos/seed/four-stages-os/1600/1600',
+    seed: 'four-stages-os',
     alt: 'Placeholder preview image for the Four Stages OS Notion template',
     caption: 'Four Stages OS',
     desc: 'A Notion template for the Creator stage: run life through a system instead of sheer will.',
   },
   {
-    src: 'https://picsum.photos/seed/the-cave/1600/1600',
+    seed: 'the-cave',
     alt: 'Placeholder preview image for The Cave series',
     caption: 'The Cave',
     desc: 'A series for the Witness stage: turn observation into integration.',
   },
   {
-    src: 'https://picsum.photos/seed/quantum-life-blueprint/1600/1600',
+    seed: 'quantum-life-blueprint',
     alt: 'Placeholder preview image for the Quantum Life Blueprint',
     caption: 'Quantum Life Blueprint',
     desc: 'The book for the Unity stage: the complete framework, written down.',
@@ -30,19 +36,12 @@ const GALLERY_ITEMS = [
 
 const WIDTHS = [400, 800, 1200];
 
-function netlifyImageUrl(src, width) {
-  const params = new URLSearchParams({
-    url: src,
-    w: String(width),
-    fit: 'cover',
-    fm: 'avif',
-    q: '80',
-  });
-  return `/.netlify/images?${params.toString()}`;
+function picsumUrl(seed, size) {
+  return `https://picsum.photos/seed/${encodeURIComponent(seed)}/${size}/${size}`;
 }
 
-function buildSrcset(src) {
-  return WIDTHS.map((w) => `${netlifyImageUrl(src, w)} ${w}w`).join(', ');
+function buildSrcset(seed) {
+  return WIDTHS.map((w) => `${picsumUrl(seed, w)} ${w}w`).join(', ');
 }
 
 const grid = document.getElementById('gallery-grid');
@@ -57,8 +56,8 @@ GALLERY_ITEMS.forEach((item, index) => {
   button.addEventListener('click', () => openLightbox(index));
 
   const img = document.createElement('img');
-  img.src = netlifyImageUrl(item.src, 800);
-  img.srcset = buildSrcset(item.src);
+  img.src = picsumUrl(item.seed, 800);
+  img.srcset = buildSrcset(item.seed);
   img.sizes = '(min-width: 900px) 25vw, (min-width: 600px) 33vw, 100vw';
   img.alt = item.alt;
   img.width = 800;
@@ -103,7 +102,7 @@ let currentIndex = 0;
 
 function renderLightbox() {
   const item = GALLERY_ITEMS[currentIndex];
-  lightboxImg.src = netlifyImageUrl(item.src, 1200);
+  lightboxImg.src = picsumUrl(item.seed, 1200);
   lightboxImg.alt = item.alt;
   lightboxName.textContent = item.caption;
   lightboxDesc.textContent = item.desc;

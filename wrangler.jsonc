@@ -1,13 +1,20 @@
 {
-  // This repo has no Worker script — it's a static site deployed as
-  // Cloudflare Workers static assets (the modern replacement for Pages).
-  // Added because the "Workers Builds" CI started failing the same push
-  // that added package.json: without this file, Workers Builds had no
-  // deploy target once a package.json made it treat the repo as a
-  // Wrangler project instead of doing a zero-config static deploy.
+  // Worker + static assets in one Cloudflare Workers deployment (the modern
+  // replacement for Pages). The fetch handler in src/worker.ts routes
+  // /api/leads to D1-backed CRUD logic and falls through to the ASSETS
+  // binding (this repo, minus .assetsignore entries) for everything else.
   "name": "four-stages-landing-page-quiz",
   "compatibility_date": "2024-09-02",
+  "main": "src/worker.ts",
   "assets": {
-    "directory": "./"
-  }
+    "directory": "./",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "four-stages-quiz-leads",
+      "database_id": "adfbdd8d-b72c-469f-b64a-3689414b7bb6"
+    }
+  ]
 }

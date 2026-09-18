@@ -1,13 +1,14 @@
-# Excludes dev/build tooling from being deployed as public static assets by
-# Cloudflare Workers (assets directory = repo root, see wrangler.jsonc).
-# Gitignore syntax.
+# Excludes dev/build tooling and the Worker source from being deployed as
+# public static assets by Cloudflare Workers (assets directory = repo root,
+# see wrangler.jsonc). Gitignore syntax. src/ is bundled into the Worker
+# script by wrangler separately — it must not also be served as a static
+# file (e.g. GET /src/worker.ts).
 node_modules/
-netlify/
+src/
 scripts/
 package.json
 package-lock.json
 tsconfig.json
-netlify.toml
 wrangler.jsonc
 .gitignore
 .assetsignore

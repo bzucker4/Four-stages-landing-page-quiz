@@ -1,4 +1,3 @@
-import type { Config } from '@netlify/functions';
 import {
   QUIZ_STAGES,
   createLead,
@@ -8,18 +7,20 @@ import {
   updateLead,
   type LeadInput,
   type LeadUpdate,
-} from '../lib/data';
+} from './db';
 
-// Netlify Blobs is key-value only — no querying/filtering/sorting at the
-// storage level. Sorting (newest first) happens in listLeads(); any future
-// filtering would need to happen here in application code, not in Blobs.
-//
-// Routes (all under /.netlify/functions/leads):
+export interface Env {
+  DB: D1Database;
+  ASSETS: Fetcher;
+}
+
+// Routes (all under /api/leads):
 //   GET    ?              list all leads
 //   GET    ?id=<id>       get one lead
 //   POST                  create a lead, JSON body
 //   PUT    ?id=<id>       update a lead, JSON body (partial)
 //   DELETE ?id=<id>       delete a lead
+// Everything else falls through to the static assets binding.
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -60,7 +61,10 @@ function validateUpdateInput(body: unknown): { error: string } | { value: LeadUp
     return { error: 'Request body must be a JSON object.' };
   }
   const b = body as Record<string, unknown>;
-  if (b.stage !== undefined && (!isNonEmptyString(b.stage) || !(QUIZ_STAGES as readonly string[]).includes(b.stage))) {
+  if (
+    b.stage !== undefined &&
+    (!isNonEmptyString(b.stage) || !(QUIZ_STAGES as readonly string[]).includes(b.stage))
+  ) {
     return { error: `"stage" must be one of: ${QUIZ_STAGES.join(', ')}.` };
   }
   for (const field of ['email', 'name', 'notes'] as const) {
@@ -76,7 +80,7 @@ function validateUpdateInput(body: unknown): { error: string } | { value: LeadUp
   return { value };
 }
 
-export default async (req: Request): Promise<Response> => {
+async function handleLeads(req: Request, env: Env): Promise<Response> {
   const url = new URL(req.url);
   const id = url.searchParams.get('id');
 
@@ -84,17 +88,17 @@ export default async (req: Request): Promise<Response> => {
     switch (req.method) {
       case 'GET': {
         if (id) {
-          const lead = await getLead(id);
+          const lead = await getLead(env.DB, id);
           return lead ? json(lead) : json({ error: 'Lead not found.' }, 404);
         }
-        return json(await listLeads());
+        return json(await listLeads(env.DB));
       }
 
       case 'POST': {
         const body = await req.json().catch(() => null);
         const result = validateCreateInput(body);
         if ('error' in result) return json({ error: result.error }, 400);
-        const lead = await createLead(result.value);
+        const lead = await createLead(env.DB, result.value);
         return json(lead, 201);
       }
 
@@ -103,13 +107,13 @@ export default async (req: Request): Promise<Response> => {
         const body = await req.json().catch(() => null);
         const result = validateUpdateInput(body);
         if ('error' in result) return json({ error: result.error }, 400);
-        const updated = await updateLead(id, result.value);
+        const updated = await updateLead(env.DB, id, result.value);
         return updated ? json(updated) : json({ error: 'Lead not found.' }, 404);
       }
 
       case 'DELETE': {
         if (!id) return json({ error: 'Missing required "id" query parameter.' }, 400);
-        const deleted = await deleteLead(id);
+        const deleted = await deleteLead(env.DB, id);
         return deleted ? json({ success: true }) : json({ error: 'Lead not found.' }, 404);
       }
 
@@ -117,11 +121,17 @@ export default async (req: Request): Promise<Response> => {
         return json({ error: 'Method not allowed.' }, 405);
     }
   } catch (err) {
-    console.error('leads function error:', err);
+    console.error('leads handler error:', err);
     return json({ error: 'Internal server error.' }, 500);
   }
-};
+}
 
-export const config: Config = {
-  path: '/.netlify/functions/leads',
+export default {
+  async fetch(req: Request, env: Env): Promise<Response> {
+    const url = new URL(req.url);
+    if (url.pathname === '/api/leads') {
+      return handleLeads(req, env);
+    }
+    return env.ASSETS.fetch(req);
+  },
 };
