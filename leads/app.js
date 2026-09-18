@@ -1,4 +1,4 @@
-const API_URL = '/.netlify/functions/leads';
+const API_URL = '/api/leads';
 
 const STAGE_LABELS = {
   victim: 'Victim (To Me)',
