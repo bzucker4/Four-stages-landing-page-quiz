@@ -13,3 +13,7 @@ wrangler.jsonc
 .gitignore
 .assetsignore
 .git/
+# Wrangler's local build output (bundled worker.js + source map) must not be
+# uploaded as public static assets.
+.wrangler/
+.dev.vars

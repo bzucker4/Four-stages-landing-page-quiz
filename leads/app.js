@@ -1,4 +1,40 @@
 const API_URL = '/api/leads';
+const TOKEN_KEY = 'leadsAdminToken';
+
+// The leads API requires `Authorization: Bearer <ADMIN_TOKEN>` for
+// list/edit/delete. The token is never stored in this repo: it is asked for
+// once per browser tab and kept in sessionStorage (cleared when the tab
+// closes, or immediately if the server rejects it).
+function getToken({ forcePrompt = false } = {}) {
+  let token = forcePrompt ? null : sessionStorage.getItem(TOKEN_KEY);
+  if (!token) {
+    token = (window.prompt('Enter the leads admin token:') || '').trim();
+    if (token) sessionStorage.setItem(TOKEN_KEY, token);
+  }
+  return token || null;
+}
+
+function clearToken() {
+  sessionStorage.removeItem(TOKEN_KEY);
+}
+
+async function apiFetch(url, options = {}) {
+  const token = getToken();
+  if (!token) {
+    const err = new Error('An admin token is required.');
+    err.status = 401;
+    throw err;
+  }
+  const headers = { ...(options.headers || {}), Authorization: `Bearer ${token}` };
+  const res = await fetch(url, { ...options, headers, credentials: 'same-origin' });
+  if (res.status === 401) {
+    clearToken();
+    const err = new Error('The admin token was rejected. Use retry to enter it again.');
+    err.status = 401;
+    throw err;
+  }
+  return res;
+}
 
 const STAGE_LABELS = {
   victim: 'Victim (To Me)',
@@ -111,7 +147,7 @@ function renderLeads(leads) {
 async function loadLeads() {
   setView('loading');
   try {
-    const res = await fetch(API_URL);
+    const res = await apiFetch(API_URL);
     if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
     const leads = await res.json();
     if (leads.length === 0) {
@@ -123,7 +159,11 @@ async function loadLeads() {
   } catch (err) {
     console.error('Failed to load leads:', err);
     setView('error');
-    announceError('Failed to load leads. Use the retry button to try again.');
+    announceError(
+      err.status === 401
+        ? `${err.message}`
+        : 'Failed to load leads. Use the retry button to try again.',
+    );
   }
 }
 
@@ -150,7 +190,7 @@ els.createForm.addEventListener('submit', async (event) => {
   const submitBtn = els.createForm.querySelector('button[type="submit"]');
   submitBtn.disabled = true;
   try {
-    const res = await fetch(API_URL, {
+    const res = await apiFetch(API_URL, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(payload),
@@ -194,7 +234,7 @@ els.editForm.addEventListener('submit', async (event) => {
   const submitBtn = els.editForm.querySelector('button[type="submit"]');
   submitBtn.disabled = true;
   try {
-    const res = await fetch(`${API_URL}?id=${encodeURIComponent(id)}`, {
+    const res = await apiFetch(`${API_URL}?id=${encodeURIComponent(id)}`, {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(payload),
@@ -230,7 +270,7 @@ els.confirmDeleteBtn.addEventListener('click', async () => {
   const id = pendingDeleteId;
   els.confirmDeleteBtn.disabled = true;
   try {
-    const res = await fetch(`${API_URL}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    const res = await apiFetch(`${API_URL}?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
     const data = await res.json().catch(() => null);
     if (!res.ok) throw new Error(data?.error || `Request failed with status ${res.status}`);
 
