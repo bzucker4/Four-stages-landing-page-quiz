@@ -120,6 +120,7 @@ for (const [method, path, body] of [
   ['GET', '/api/leads', undefined],
   ['GET', '/api/leads/', undefined],
   ['GET', '/api/leads?id=x', undefined],
+  ['POST', '/api/leads', { stage: 'victim', email: 'a@example.com' }],
   ['PUT', '/api/leads?id=x', { notes: 'x' }],
   ['PATCH', '/api/leads?id=x', { notes: 'x' }],
   ['DELETE', '/api/leads?id=x', undefined],
@@ -129,7 +130,8 @@ for (const [method, path, body] of [
   res = await worker.fetch(req(method, path, body, { token: 'wrong-token' }), env);
   assert.equal(res.status, 401, `${method} ${path} with wrong token`);
 }
-console.log('PASS: admin methods reject missing/wrong token with 401');
+assert.equal((env.DB as unknown as FakeD1).rows.length, 0);
+console.log('PASS: every method (incl. POST) rejects missing/wrong token with 401, nothing written');
 
 res = await worker.fetch(
   req('GET', '/api/leads', undefined, { headers: { authorization: TEST_TOKEN }, token: null }),
@@ -141,6 +143,8 @@ console.log('PASS: token without "Bearer " scheme rejected');
 {
   const noSecretEnv = { ...env, ADMIN_TOKEN: undefined };
   res = await worker.fetch(req('GET', '/api/leads'), noSecretEnv);
+  assert.equal(res.status, 401);
+  res = await worker.fetch(req('POST', '/api/leads', { stage: 'victim' }), noSecretEnv);
   assert.equal(res.status, 401);
   const emptySecretEnv = { ...env, ADMIN_TOKEN: '' };
   res = await worker.fetch(req('GET', '/api/leads', undefined, { headers: { authorization: 'Bearer ' }, token: null }), emptySecretEnv);
@@ -157,32 +161,32 @@ assert.deepEqual(await res.json(), []);
 console.log('PASS: empty list with valid token, no-store, no CORS');
 
 // 3. reject invalid stage
-res = await worker.fetch(req('POST', '/api/leads', { stage: 'not-a-stage' }, { token: null }), env);
+res = await worker.fetch(req('POST', '/api/leads', { stage: 'not-a-stage' }), env);
 assert.equal(res.status, 400);
 console.log('PASS: rejects invalid stage');
 
 // --- validation ---------------------------------------------------------
-res = await worker.fetch(req('POST', '/api/leads', { stage: 'victim', email: 'nope' }, { token: null }), env);
+res = await worker.fetch(req('POST', '/api/leads', { stage: 'victim', email: 'nope' }), env);
 assert.equal(res.status, 400);
-res = await worker.fetch(req('POST', '/api/leads', { stage: 'victim', notes: 'x'.repeat(2001) }, { token: null }), env);
+res = await worker.fetch(req('POST', '/api/leads', { stage: 'victim', notes: 'x'.repeat(2001) }), env);
 assert.equal(res.status, 400);
-res = await worker.fetch(req('POST', '/api/leads', { stage: 'victim', name: 'x'.repeat(9000) }, { token: null }), env);
+res = await worker.fetch(req('POST', '/api/leads', { stage: 'victim', name: 'x'.repeat(9000) }), env);
 assert.equal(res.status, 413);
 res = await worker.fetch(
-  req('POST', '/api/leads', { stage: 'victim' }, { token: null, headers: { 'content-type': 'text/plain' } }),
+  req('POST', '/api/leads', { stage: 'victim' }, { headers: { 'content-type': 'text/plain' } }),
   env,
 );
 assert.equal(res.status, 415);
-res = await worker.fetch(req('POST', '/api/leads', '{not json', { token: null }), env);
+res = await worker.fetch(req('POST', '/api/leads', '{not json'), env);
 assert.equal(res.status, 400);
-res = await worker.fetch(req('POST', '/api/leads', ['victim'], { token: null }), env);
+res = await worker.fetch(req('POST', '/api/leads', ['victim']), env);
 assert.equal(res.status, 400);
 assert.equal((env.DB as unknown as FakeD1).rows.length, 0);
 console.log('PASS: rejects bad email, oversize fields/body, wrong content-type, bad JSON, arrays');
 
 // 4. public create (no token)
 res = await worker.fetch(
-  req('POST', '/api/leads', { stage: 'victim', email: 'a@example.com', name: 'Ada' }, { token: null }),
+  req('POST', '/api/leads', { stage: 'victim', email: 'a@example.com', name: 'Ada' }),
   env,
 );
 assert.equal(res.status, 201);
@@ -190,33 +194,19 @@ const created = (await res.json()) as { id: string; stage: string; email: string
 assert.equal(created.stage, 'victim');
 assert.equal(created.email, 'a@example.com');
 assert.ok(created.id);
-console.log('PASS: public create without token');
+console.log('PASS: create with valid token');
 
-// --- CORS ---------------------------------------------------------------
-{
-  const corsEnv = { ...env, ALLOWED_ORIGINS: 'https://fourstagesquiz.com' };
-  res = await worker.fetch(
-    req('OPTIONS', '/api/leads', undefined, { token: null, headers: { origin: 'https://fourstagesquiz.com' } }),
-    corsEnv,
-  );
-  assert.equal(res.status, 204);
-  assert.equal(res.headers.get('access-control-allow-origin'), 'https://fourstagesquiz.com');
-  assert.equal(res.headers.get('access-control-allow-methods'), 'POST, OPTIONS');
-  res = await worker.fetch(
-    req('OPTIONS', '/api/leads', undefined, { token: null, headers: { origin: 'https://evil.example' } }),
-    corsEnv,
-  );
-  assert.equal(res.status, 403);
-  assert.equal(res.headers.get('access-control-allow-origin'), null);
-  res = await worker.fetch(
-    req('GET', '/api/leads', undefined, { headers: { origin: 'https://fourstagesquiz.com' } }),
-    corsEnv,
-  );
-  assert.equal(res.status, 200);
-  assert.equal(res.headers.get('access-control-allow-origin'), null);
-  await res.body?.cancel();
-  console.log('PASS: CORS only for allow-listed origins on POST, never on admin GET');
-}
+// --- no CORS ever ----------------------------------------------------------
+res = await worker.fetch(
+  req('POST', '/api/leads', { stage: 'unity' }, { token: null, headers: { origin: 'https://evil.example' } }),
+  env,
+);
+assert.equal(res.status, 401);
+assert.equal(res.headers.get('access-control-allow-origin'), null);
+res = await worker.fetch(req('OPTIONS', '/api/leads', undefined, { token: null, headers: { origin: 'https://evil.example' } }), env);
+assert.equal(res.status, 405);
+assert.equal(res.headers.get('access-control-allow-origin'), null);
+console.log('PASS: no CORS headers; cross-origin POST/OPTIONS rejected');
 
 // 5. list has one
 res = await worker.fetch(req('GET', '/api/leads'), env);
@@ -269,7 +259,7 @@ assert.equal(res.status, 404);
 console.log('PASS: delete missing id -> 404');
 
 // 12. unknown method
-res = await worker.fetch(req('HEAD', '/api/leads', undefined, { token: null }), env);
+res = await worker.fetch(req('HEAD', '/api/leads'), env);
 assert.equal(res.status, 405);
 console.log('PASS: unknown method -> 405');
 

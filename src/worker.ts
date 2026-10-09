@@ -16,22 +16,17 @@ export interface Env {
   // (never commit it). If unset/empty, every admin route returns 401
   // (fail closed).
   ADMIN_TOKEN?: string;
-  // Optional comma-separated list of extra origins (e.g.
-  // "https://fourstagesquiz.com,https://www.fourstagesquiz.com") that may
-  // POST new leads cross-origin from a browser. Same-origin requests never
-  // need this. Admin methods never get CORS headers.
-  ALLOWED_ORIGINS?: string;
 }
 
-// Routes (all under /api/leads):
-//   POST                  create a lead, JSON body           (public)
-//   GET    ?              list all leads                     (admin)
-//   GET    ?id=<id>       get one lead                       (admin)
-//   PUT    ?id=<id>       update a lead, JSON body (partial) (admin)
-//   PATCH  ?id=<id>       same as PUT                        (admin)
-//   DELETE ?id=<id>       delete a lead                      (admin)
-//   OPTIONS               CORS preflight (POST only)
-// Admin = `Authorization: Bearer <ADMIN_TOKEN>`.
+// Routes (all under /api/leads), every one admin-only:
+//   GET    ?              list all leads
+//   GET    ?id=<id>       get one lead
+//   POST                  create a lead, JSON body
+//   PUT    ?id=<id>       update a lead, JSON body (partial)
+//   PATCH  ?id=<id>       same as PUT
+//   DELETE ?id=<id>       delete a lead
+// Admin = `Authorization: Bearer <ADMIN_TOKEN>`. No CORS headers are ever
+// sent: the only caller is the same-origin /leads/ admin page.
 // Everything else falls through to the static assets binding.
 
 const MAX_BODY_BYTES = 8 * 1024;
@@ -40,7 +35,7 @@ const FIELD_LIMITS = { email: 254, name: 200, notes: 2000 } as const;
 // Deliberately loose: one "@", no whitespace, a dot in the domain part.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const ADMIN_METHODS = new Set(['GET', 'PUT', 'PATCH', 'DELETE']);
+const ADMIN_METHODS = new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']);
 
 function json(data: unknown, status = 200, extraHeaders: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(data), {
@@ -85,25 +80,6 @@ async function isAdmin(req: Request, env: Env): Promise<boolean> {
 
 function unauthorized(): Response {
   return json({ error: 'Unauthorized.' }, 401, { 'www-authenticate': 'Bearer realm="leads"' });
-}
-
-// --- CORS (public POST only) ------------------------------------------------
-
-function corsHeadersFor(req: Request, env: Env): Record<string, string> {
-  const origin = req.headers.get('origin');
-  if (!origin) return {};
-  const allowed = (env.ALLOWED_ORIGINS ?? '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-  if (!allowed.includes(origin)) return {};
-  return {
-    'access-control-allow-origin': origin,
-    'access-control-allow-methods': 'POST, OPTIONS',
-    'access-control-allow-headers': 'content-type',
-    'access-control-max-age': '86400',
-    vary: 'Origin',
-  };
 }
 
 // --- body parsing / validation ------------------------------------------------
@@ -194,11 +170,6 @@ async function handleLeads(req: Request, env: Env): Promise<Response> {
   const url = new URL(req.url);
   const id = url.searchParams.get('id');
 
-  if (req.method === 'OPTIONS') {
-    const cors = corsHeadersFor(req, env);
-    return new Response(null, { status: cors['access-control-allow-origin'] ? 204 : 403, headers: cors });
-  }
-
   if (ADMIN_METHODS.has(req.method) && !(await isAdmin(req, env))) {
     return unauthorized();
   }
@@ -215,13 +186,12 @@ async function handleLeads(req: Request, env: Env): Promise<Response> {
       }
 
       case 'POST': {
-        const cors = corsHeadersFor(req, env);
         const parsed = await readJsonBody(req);
-        if ('error' in parsed) return json({ error: parsed.error }, parsed.status, cors);
+        if ('error' in parsed) return json({ error: parsed.error }, parsed.status);
         const result = validateCreateInput(parsed.value);
-        if ('error' in result) return json({ error: result.error }, 400, cors);
+        if ('error' in result) return json({ error: result.error }, 400);
         const lead = await createLead(env.DB, result.value);
-        return json(lead, 201, cors);
+        return json(lead, 201);
       }
 
       case 'PUT':
@@ -244,7 +214,7 @@ async function handleLeads(req: Request, env: Env): Promise<Response> {
       }
 
       default:
-        return json({ error: 'Method not allowed.' }, 405, { allow: 'GET, POST, PUT, PATCH, DELETE, OPTIONS' });
+        return json({ error: 'Method not allowed.' }, 405, { allow: 'GET, POST, PUT, PATCH, DELETE' });
     }
   } catch (err) {
     console.error('leads handler error:', err);

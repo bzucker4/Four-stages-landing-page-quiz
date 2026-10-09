@@ -2,7 +2,7 @@ const API_URL = '/api/leads';
 const TOKEN_KEY = 'leadsAdminToken';
 
 // The leads API requires `Authorization: Bearer <ADMIN_TOKEN>` for
-// list/edit/delete. The token is never stored in this repo: it is asked for
+// every request (list/create/edit/delete). The token is never stored in this repo: it is asked for
 // once per browser tab and kept in sessionStorage (cleared when the tab
 // closes, or immediately if the server rejects it).
 function getToken({ forcePrompt = false } = {}) {
