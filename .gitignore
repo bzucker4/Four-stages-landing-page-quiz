@@ -1,5 +1,8 @@
-# Local Netlify folder
-.netlify
+# Local Wrangler folder (dev/build cache, local D1 SQLite emulation)
+.wrangler
+
+# Local secrets for `wrangler dev` (e.g. ADMIN_TOKEN=...). Never commit.
+.dev.vars
 
 # Dependencies
 node_modules

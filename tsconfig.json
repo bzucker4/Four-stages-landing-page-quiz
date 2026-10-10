@@ -3,11 +3,12 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "lib": ["ES2022", "DOM"],
+    "lib": ["ES2022"],
     "strict": true,
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["@cloudflare/workers-types", "node"]
   },
-  "include": ["netlify/**/*.ts"]
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "scripts/**/*.mts"]
 }
