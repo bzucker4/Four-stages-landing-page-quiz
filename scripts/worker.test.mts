@@ -86,13 +86,27 @@ const fakeAssets = {
   },
 };
 
-const env = { DB: new FakeD1() as unknown as D1Database, ASSETS: fakeAssets as unknown as Fetcher };
+const TEST_TOKEN = 'test-admin-token-not-a-real-secret';
+const env = {
+  DB: new FakeD1() as unknown as D1Database,
+  ASSETS: fakeAssets as unknown as Fetcher,
+  ADMIN_TOKEN: TEST_TOKEN,
+};
 
-function req(method: string, path: string, body?: unknown): Request {
+function req(
+  method: string,
+  path: string,
+  body?: unknown,
+  opts: { token?: string | null; headers?: Record<string, string> } = {},
+): Request {
+  const token = opts.token === undefined ? TEST_TOKEN : opts.token;
+  const headers: Record<string, string> = { ...(opts.headers ?? {}) };
+  if (body !== undefined) headers['content-type'] ??= 'application/json';
+  if (token) headers['authorization'] = `Bearer ${token}`;
   return new Request(`http://localhost${path}`, {
     method,
-    headers: body ? { 'content-type': 'application/json' } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
+    headers,
+    body: body !== undefined ? (typeof body === 'string' ? body : JSON.stringify(body)) : undefined,
   });
 }
 
@@ -101,18 +115,76 @@ let res = await worker.fetch(req('GET', '/'), env);
 assert.equal(await res.text(), 'static:/');
 console.log('PASS: non-API path falls through to ASSETS');
 
-// 2. empty list
+// --- auth ---------------------------------------------------------------
+for (const [method, path, body] of [
+  ['GET', '/api/leads', undefined],
+  ['GET', '/api/leads/', undefined],
+  ['GET', '/api/leads?id=x', undefined],
+  ['POST', '/api/leads', { stage: 'victim', email: 'a@example.com' }],
+  ['PUT', '/api/leads?id=x', { notes: 'x' }],
+  ['PATCH', '/api/leads?id=x', { notes: 'x' }],
+  ['DELETE', '/api/leads?id=x', undefined],
+] as const) {
+  res = await worker.fetch(req(method, path, body, { token: null }), env);
+  assert.equal(res.status, 401, `${method} ${path} without token`);
+  res = await worker.fetch(req(method, path, body, { token: 'wrong-token' }), env);
+  assert.equal(res.status, 401, `${method} ${path} with wrong token`);
+}
+assert.equal((env.DB as unknown as FakeD1).rows.length, 0);
+console.log('PASS: every method (incl. POST) rejects missing/wrong token with 401, nothing written');
+
+res = await worker.fetch(
+  req('GET', '/api/leads', undefined, { headers: { authorization: TEST_TOKEN }, token: null }),
+  env,
+);
+assert.equal(res.status, 401);
+console.log('PASS: token without "Bearer " scheme rejected');
+
+{
+  const noSecretEnv = { ...env, ADMIN_TOKEN: undefined };
+  res = await worker.fetch(req('GET', '/api/leads'), noSecretEnv);
+  assert.equal(res.status, 401);
+  res = await worker.fetch(req('POST', '/api/leads', { stage: 'victim' }), noSecretEnv);
+  assert.equal(res.status, 401);
+  const emptySecretEnv = { ...env, ADMIN_TOKEN: '' };
+  res = await worker.fetch(req('GET', '/api/leads', undefined, { headers: { authorization: 'Bearer ' }, token: null }), emptySecretEnv);
+  assert.equal(res.status, 401);
+  console.log('PASS: fails closed when ADMIN_TOKEN is unset or empty');
+}
+
+// 2. empty list (authorized)
 res = await worker.fetch(req('GET', '/api/leads'), env);
 assert.equal(res.status, 200);
+assert.equal(res.headers.get('cache-control'), 'no-store');
+assert.equal(res.headers.get('access-control-allow-origin'), null);
 assert.deepEqual(await res.json(), []);
-console.log('PASS: empty list');
+console.log('PASS: empty list with valid token, no-store, no CORS');
 
 // 3. reject invalid stage
 res = await worker.fetch(req('POST', '/api/leads', { stage: 'not-a-stage' }), env);
 assert.equal(res.status, 400);
 console.log('PASS: rejects invalid stage');
 
-// 4. create
+// --- validation ---------------------------------------------------------
+res = await worker.fetch(req('POST', '/api/leads', { stage: 'victim', email: 'nope' }), env);
+assert.equal(res.status, 400);
+res = await worker.fetch(req('POST', '/api/leads', { stage: 'victim', notes: 'x'.repeat(2001) }), env);
+assert.equal(res.status, 400);
+res = await worker.fetch(req('POST', '/api/leads', { stage: 'victim', name: 'x'.repeat(9000) }), env);
+assert.equal(res.status, 413);
+res = await worker.fetch(
+  req('POST', '/api/leads', { stage: 'victim' }, { headers: { 'content-type': 'text/plain' } }),
+  env,
+);
+assert.equal(res.status, 415);
+res = await worker.fetch(req('POST', '/api/leads', '{not json'), env);
+assert.equal(res.status, 400);
+res = await worker.fetch(req('POST', '/api/leads', ['victim']), env);
+assert.equal(res.status, 400);
+assert.equal((env.DB as unknown as FakeD1).rows.length, 0);
+console.log('PASS: rejects bad email, oversize fields/body, wrong content-type, bad JSON, arrays');
+
+// 4. public create (no token)
 res = await worker.fetch(
   req('POST', '/api/leads', { stage: 'victim', email: 'a@example.com', name: 'Ada' }),
   env,
@@ -122,7 +194,19 @@ const created = (await res.json()) as { id: string; stage: string; email: string
 assert.equal(created.stage, 'victim');
 assert.equal(created.email, 'a@example.com');
 assert.ok(created.id);
-console.log('PASS: create');
+console.log('PASS: create with valid token');
+
+// --- no CORS ever ----------------------------------------------------------
+res = await worker.fetch(
+  req('POST', '/api/leads', { stage: 'unity' }, { token: null, headers: { origin: 'https://evil.example' } }),
+  env,
+);
+assert.equal(res.status, 401);
+assert.equal(res.headers.get('access-control-allow-origin'), null);
+res = await worker.fetch(req('OPTIONS', '/api/leads', undefined, { token: null, headers: { origin: 'https://evil.example' } }), env);
+assert.equal(res.status, 405);
+assert.equal(res.headers.get('access-control-allow-origin'), null);
+console.log('PASS: no CORS headers; cross-origin POST/OPTIONS rejected');
 
 // 5. list has one
 res = await worker.fetch(req('GET', '/api/leads'), env);
@@ -143,10 +227,21 @@ assert.equal(updated.notes, 'followed up');
 assert.equal(updated.email, 'a@example.com');
 console.log('PASS: partial update preserves other fields');
 
+// 7b. PATCH alias
+res = await worker.fetch(req('PATCH', `/api/leads?id=${created.id}`, { name: 'Ada L' }), env);
+assert.equal(res.status, 200);
+console.log('PASS: PATCH works with token');
+
 // 8. update with invalid stage rejected
 res = await worker.fetch(req('PUT', `/api/leads?id=${created.id}`, { stage: 'nope' }), env);
 assert.equal(res.status, 400);
 console.log('PASS: update rejects invalid stage');
+
+// 8b. unauthenticated delete does not delete
+res = await worker.fetch(req('DELETE', `/api/leads?id=${created.id}`, undefined, { token: null }), env);
+assert.equal(res.status, 401);
+assert.equal((env.DB as unknown as FakeD1).rows.length, 1);
+console.log('PASS: unauthenticated delete leaves data intact');
 
 // 9. delete
 res = await worker.fetch(req('DELETE', `/api/leads?id=${created.id}`), env);
@@ -162,5 +257,10 @@ console.log('PASS: 404 after delete');
 res = await worker.fetch(req('DELETE', '/api/leads?id=does-not-exist'), env);
 assert.equal(res.status, 404);
 console.log('PASS: delete missing id -> 404');
+
+// 12. unknown method
+res = await worker.fetch(req('HEAD', '/api/leads'), env);
+assert.equal(res.status, 405);
+console.log('PASS: unknown method -> 405');
 
 console.log('\nAll worker fetch-handler checks passed.');
